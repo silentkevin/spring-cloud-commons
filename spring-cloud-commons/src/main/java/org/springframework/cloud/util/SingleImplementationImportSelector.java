@@ -28,6 +28,7 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.DeferredImportSelector;
 import org.springframework.core.GenericTypeResolver;
 import org.springframework.core.annotation.AnnotationAttributes;
+import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.support.SpringFactoriesLoader;
 import org.springframework.core.type.AnnotationMetadata;
@@ -77,10 +78,18 @@ public abstract class SingleImplementationImportSelector<T> implements
 		}
 
 		if (factories.size() > 1) {
-			String factory = factories.get(0);
-			// there should only every be one DiscoveryClient
-			log.warn("More than one implementation " + "of @" + getSimpleName()
-					+ ".  Using " + factory + " out of available " + factories);
+			List<Class> factoryClasses = new ArrayList<>();
+			for (String factory : factories) {
+				try {
+					factoryClasses.add(this.beanClassLoader.loadClass(factory));
+				} catch (ClassNotFoundException e) {
+					log.error("Failed to load class with name " + factory, e);
+				}
+			}
+			log.warn("More than one implementation " + "of @" + getSimpleName() + ".  Factories available: " + factoryClasses);
+			Collections.sort(factoryClasses, AnnotationAwareOrderComparator.INSTANCE);
+			String factory = factoryClasses.get(0).getCanonicalName();
+			log.warn("We sorted factories by @Ordered value and are now using first one " + factory + " out of available (now sorted) " + factoryClasses);
 			factories = Collections.singletonList(factory);
 		}
 
