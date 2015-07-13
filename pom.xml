@@ -18,7 +18,7 @@
 		<repository>
 			<id>libs-release</id>
 			<name>libs-release</name>
-			<url>http://ecss1:11000/artifactory/libs-release-local</url>
+			<url>http://artifactory.mesmo.tv:11000/artifactory/libs-release-local</url>
 		</repository>
 	</distributionManagement>
 	<scm>
